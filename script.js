@@ -14,7 +14,7 @@ function createNote(id, title = '', content = '', color = '#fffacd', priority = 
         <input type="text" value="${title}" placeholder="Título">
         <textarea placeholder="Escribe aquí:">${content}</textarea>
         <div class="options">
-            <input type="color" value="${color}" title="Color">
+            <button class="color-btn" title="Color">Color</button>
             <select title="Elegir prioridad">
                 <option value="" disabled selected>Elegir prioridad</option>
                 <option value="alta" ${priority === 'alta' ? 'selected' : ''}>Alta</option>
@@ -29,20 +29,28 @@ function createNote(id, title = '', content = '', color = '#fffacd', priority = 
 
     const titleInput = note.querySelector('input[type="text"]');
     const textarea = note.querySelector('textarea');
-    const colorInput = note.querySelector('input[type="color"]');
+    const colorButton = note.querySelector('.color-btn');
     const prioritySelect = note.querySelector('select');
     const tagsInput = note.querySelector('input[type="text"]:last-of-type');
     const saveButton = note.querySelector('.save');
     const deleteButton = note.querySelector('.delete');
 
-    titleInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value));
-    textarea.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value));
-    colorInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value));
-    prioritySelect.addEventListener('change', () => updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value));
-    tagsInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value));
+    titleInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    textarea.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    colorButton.addEventListener('click', () => {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = note.style.backgroundColor;
+        colorInput.addEventListener('change', (event) => {
+            note.style.backgroundColor = event.target.value;
+            updateNote(id, titleInput.value, textarea.value, event.target.value, prioritySelect.value, tagsInput.value);
+        });
+        colorInput.click();
+    });
+    prioritySelect.addEventListener('change', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    tagsInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
     saveButton.addEventListener('click', () => {
-        updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value);
-        note.style.backgroundColor = colorInput.value;
+        updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value);
         note.classList.add('bordered');
     });
     deleteButton.addEventListener('click', () => {
