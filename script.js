@@ -1,17 +1,20 @@
 const addNoteButton = document.getElementById('addNote');
 const notesContainer = document.getElementById('notes');
 const searchNotesInput = document.getElementById('searchNotes');
+const toggleThemeButton = document.getElementById('toggleTheme');
+let isDarkMode = false;
 
-function createNote(id, title = '', content = '', color = 'white', priority = 'normal', tags = '') {
+function createNote(id, title = '', content = '', color = '#fffacd', priority = 'normal', tags = '') {
     const note = document.createElement('div');
     note.classList.add('note');
     note.style.backgroundColor = color;
     note.innerHTML = `
         <input type="text" value="${title}" placeholder="Título">
-        <textarea>${content}</textarea>
+        <textarea placeholder="Escribe aquí:">${content}</textarea>
         <div class="options">
             <input type="color" value="${color}" title="Cambiar color">
-            <select title="Prioridad">
+            <select title="Elegir prioridad">
+                <option value="" disabled selected>Elegir prioridad</option>
                 <option value="alta" ${priority === 'alta' ? 'selected' : ''}>Alta</option>
                 <option value="normal" ${priority === 'normal' ? 'selected' : ''}>Normal</option>
                 <option value="baja" ${priority === 'baja' ? 'selected' : ''}>Baja</option>
@@ -35,7 +38,11 @@ function createNote(id, title = '', content = '', color = 'white', priority = 'n
     colorInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value));
     prioritySelect.addEventListener('change', () => updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value));
     tagsInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value));
-    saveButton.addEventListener('click', () => updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value));
+    saveButton.addEventListener('click', () => {
+        updateNote(id, titleInput.value, textarea.value, colorInput.value, prioritySelect.value, tagsInput.value);
+        note.style.backgroundColor = colorInput.value;
+        note.classList.add('bordered');
+    });
     deleteButton.addEventListener('click', () => deleteNote(id));
 
     return note;
@@ -55,8 +62,8 @@ function addNote() {
         id: Date.now(),
         title: '',
         content: '',
-        color: 'white',
-        priority: 'normal',
+        color: '#fffacd',
+        priority: '',
         tags: ''
     };
     notes.push(newNote);
@@ -93,6 +100,12 @@ function searchNotes(searchTerm) {
     });
     renderNotes(filteredNotes);
 }
+
+toggleThemeButton.addEventListener('click', () => {
+    isDarkMode = !isDarkMode;
+    document.body.classList.toggle('dark-mode');
+    toggleThemeButton.textContent = isDarkMode ? 'Cambiar Color del Tema: Claro' : 'Cambiar Color del Tema: Oscuro';
+});
 
 addNoteButton.addEventListener('click', addNote);
 searchNotesInput.addEventListener('input', () => searchNotes(searchNotesInput.value));
