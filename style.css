@@ -80,6 +80,8 @@ body.dark-mode {
 .note .options input[type="color"] {
     background-color: lightgreen;
     color: black;
+    padding: 0;
+    width: 60px;
 }
 
 .note .options select {
@@ -90,6 +92,6 @@ body.dark-mode {
     color: grey;
 }
 
-.note.bordered {
+.note .bordered {
     border: 2px solid black;
 }
