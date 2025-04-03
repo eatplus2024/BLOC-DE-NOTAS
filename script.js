@@ -12,7 +12,7 @@ function createNote(id, title = '', content = '', color = '#fffacd', priority = 
     note.style.backgroundColor = color;
     note.innerHTML = `
         <input type="text" value="${title}" placeholder="Título">
-        <textarea placeholder="Escribe aquí:">${content}</textarea>
+        <textarea placeholder="Escríbe aquí:">${content}</textarea>
         <div class="options">
             <button class="color-btn" title="Color">Color</button>
             <select title="Elegir prioridad">
