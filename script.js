@@ -3,23 +3,25 @@ const notesContainer = document.getElementById('notes');
 const searchNotesInput = document.getElementById('searchNotes');
 const toggleThemeButton = document.getElementById('toggleTheme');
 let isDarkMode = false;
+let undoStack = [];
+let redoStack = [];
 
 function createNote(id, title = '', content = '', color = '#fffacd', priority = '', tags = '') {
     const note = document.createElement('div');
     note.classList.add('note');
     note.style.backgroundColor = color;
     note.innerHTML = `
-        <input type="text" value="<span class="math-inline">\{title\}" placeholder\="Título"\>
-<textarea placeholder\="Escríbe aquí\:"\></span>{content}</textarea>
+        <input type="text" value="${title}" placeholder="Título">
+        <textarea placeholder="Escribe aquí:">${content}</textarea>
         <div class="options">
             <input type="color" value="${color}" title="Color">
             <select title="Elegir prioridad">
                 <option value="" disabled selected>Elegir prioridad</option>
                 <option value="alta" ${priority === 'alta' ? 'selected' : ''}>Alta</option>
                 <option value="normal" ${priority === 'normal' ? 'selected' : ''}>Normal</option>
-                <option value="baja" <span class="math-inline">\{priority \=\=\= 'baja' ? 'selected' \: ''\}\>Baja</option\>
-</select\>
-<input type\="text" value\="</span>{tags}" placeholder="Etiquetas (separadas por comas)" title="Etiquetas">
+                <option value="baja" ${priority === 'baja' ? 'selected' : ''}>Baja</option>
+            </select>
+            <input type="text" value="${tags}" placeholder="Etiquetas (separadas por comas)" title="Etiquetas">
             <button class="save" title="Guardar">Guardar</button>
             <button class="delete" title="Eliminar">Eliminar</button>
         </div>
@@ -43,7 +45,11 @@ function createNote(id, title = '', content = '', color = '#fffacd', priority = 
         note.style.backgroundColor = colorInput.value;
         note.classList.add('bordered');
     });
-    deleteButton.addEventListener('click', () => deleteNote(id));
+    deleteButton.addEventListener('click', () => {
+        if (confirm('¿Estás seguro de que quieres eliminar esta nota?')) {
+            deleteNote(id);
+        }
+    });
 
     return note;
 }
@@ -75,6 +81,7 @@ function updateNote(id, title, content, color, priority, tags) {
     const notes = JSON.parse(localStorage.getItem('notes')) || [];
     const note = notes.find(note => note.id === id);
     if (note) {
+        undoStack.push(JSON.parse(JSON.stringify(note))); // Guardar el estado anterior
         note.title = title;
         note.content = content;
         note.color = color;
@@ -96,3 +103,17 @@ function searchNotes(searchTerm) {
     const filteredNotes = notes.filter(note => {
         return note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            note.tags.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+    renderNotes(filteredNotes);
+}
+
+toggleThemeButton.addEventListener('click', () => {
+    isDarkMode = !isDarkMode;
+    document.body.classList.toggle('dark-mode');
+    toggleThemeButton.textContent = isDarkMode ? 'Cambiar Color del Tema: Claro' : 'Cambiar Color del Tema: Oscuro';
+});
+
+addNoteButton.addEventListener('click', addNote);
+searchNotesInput.addEventListener('input', () => searchNotes(searchNotesInput.value));
+renderNotes();
