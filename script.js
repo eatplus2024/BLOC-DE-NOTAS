@@ -1,48 +1,71 @@
-let participants = [];
+const addNoteButton = document.getElementById('addNote');
+const notesContainer = document.getElementById('notes');
 
-function addParticipant() {
-    const name = document.getElementById('name').value;
-    if (name) {
-        participants.push(name);
-        updateParticipantsList();
-        document.getElementById('name').value = '';
-    } else {
-        alert("Por favor, ingresa un nombre.");
-    }
+function createNote(id, title = '', content = '', color = 'white') {
+    const note = document.createElement('div');
+    note.classList.add('note');
+    note.style.backgroundColor = color;
+    note.innerHTML = `
+        <input type="text" value="${title}" placeholder="Título">
+        <textarea>${content}</textarea>
+        <div class="options">
+            <input type="color" value="${color}">
+            <button class="delete">Eliminar</button>
+        </div>
+    `;
+
+    const titleInput = note.querySelector('input');
+    const textarea = note.querySelector('textarea');
+    const colorInput = note.querySelector('input[type="color"]');
+    const deleteButton = note.querySelector('.delete');
+
+    titleInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, colorInput.value));
+    textarea.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, colorInput.value));
+    colorInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, colorInput.value));
+    deleteButton.addEventListener('click', () => deleteNote(id));
+
+    return note;
 }
 
-function updateParticipantsList() {
-    const list = document.getElementById('participantsList');
-    list.innerHTML = '';
-    participants.forEach(participant => {
-        const li = document.createElement('li');
-        li.textContent = participant;
-        list.appendChild(li);
+function renderNotes() {
+    notesContainer.innerHTML = '';
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    notes.forEach(note => {
+        const noteElement = createNote(note.id, note.title, note.content, note.color);
+        notesContainer.appendChild(noteElement);
     });
 }
 
-function pickWinner() {
-    if (participants.length === 0) {
-        alert("No hay participantes para el sorteo.");
-        return;
-    }
-
-    const digitalBoard = document.getElementById('digitalBoard');
-    let currentIndex = 0;
-    const speed = 100; // Velocidad de cambio de nombre en milisegundos
-    const duration = 5000; // Duración total del efecto en milisegundos
-
-    digitalBoard.classList.remove('winner');
-
-    const interval = setInterval(() => {
-        digitalBoard.textContent = participants[currentIndex];
-        currentIndex = (currentIndex + 1) % participants.length;
-    }, speed);
-
-    setTimeout(() => {
-        clearInterval(interval);
-        const winnerIndex = Math.floor(Math.random() * participants.length);
-        digitalBoard.textContent = `¡El ganador es: ${participants[winnerIndex]}!`;
-        digitalBoard.classList.add('winner');
-    }, duration);
+function addNote() {
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    const newNote = {
+        id: Date.now(),
+        title: '',
+        content: '',
+        color: 'white'
+    };
+    notes.push(newNote);
+    localStorage.setItem('notes', JSON.stringify(notes));
+    renderNotes();
 }
+
+function updateNote(id, title, content, color) {
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    const note = notes.find(note => note.id === id);
+    if (note) {
+        note.title = title;
+        note.content = content;
+        note.color = color;
+        localStorage.setItem('notes', JSON.stringify(notes));
+    }
+}
+
+function deleteNote(id) {
+    let notes = JSON.parse(localStorage.getItem('notes')) || [];
+    notes = notes.filter(note => note.id !== id);
+    localStorage.setItem('notes', JSON.stringify(notes));
+    renderNotes();
+}
+
+addNoteButton.addEventListener('click', addNote);
+renderNotes();
