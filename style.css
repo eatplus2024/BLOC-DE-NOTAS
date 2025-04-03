@@ -1,69 +1,51 @@
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background-color: #6c98fe;
-  margin: 0;
-  padding: 0;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
 }
 
-h1 {
-  color: #333;
+.container {
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-input, button {
-  padding: 10px;
-  margin: 10px;
+#addNote {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
+.note {
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-li {
-  background-color: #fff;
-  margin: 5px;
-  padding: 10px;
-  border: 1px solid #ccc;
+.note input {
+    width: 100%;
+    border: none;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
 }
 
-#digitalBoard {
-  margin-top: 20px;
-  font-size: 20px;
-  font-weight: bold;
-  width: 50%; /* La mitad del ancho de la pantalla */
-  height: 50%; /* La mitad de la altura de la pantalla */
-  margin: auto;
-  position: relative;
-  color: #333;
-  background-color: #f9f9f9;
-  padding: 10px;
-  border-radius: 5px;
-  min-height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.3s ease-in-out;
+.note textarea {
+    width: 100%;
+    border: none;
+    resize: vertical;
 }
 
-#digitalBoard.winner {
-  background-color: #FFD700; /* Color dorado */
-  color: #fff;
-  font-size: 24px;
-  width: 50%; /* La mitad del ancho de la pantalla */
-  height: 50%; /* La mitad de la altura de la pantalla */
-  margin: auto;
-  position: relative;
+.note .options {
+    margin-top: 10px;
 }
 
-#digitalBoard.winner::after {
-  content: "🎉🎉🎁🎁";
-  position: absolute;
-  font-size: 30px;
-  top: -30px;
-  left: calc(50% - 45px);
-  animation: sparkle 1s infinite alternate;
+.note .options button {
+    padding: 5px 10px;
+    cursor: pointer;
 }
-
-@keyframes sparkle {
-  from {
