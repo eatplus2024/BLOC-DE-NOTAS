@@ -10,13 +10,22 @@ body {
     margin: 0 auto;
 }
 
-#addNote {
+#addNote, #searchNotes {
     padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
+    margin-bottom: 10px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+#addNote {
+    background-color: #007bff;
+    color: white;
+}
+
+#searchNotes {
+    width: 100%;
+    border: 1px solid #ccc;
 }
 
 .note {
@@ -27,7 +36,7 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.note input {
+.note input[type="text"] {
     width: 100%;
     border: none;
     font-size: 1.2em;
@@ -45,7 +54,12 @@ body {
     margin-top: 10px;
 }
 
-.note .options button {
+.note .options button, .note .options input[type="color"], .note .options select {
     padding: 5px 10px;
     cursor: pointer;
+    margin-right: 5px;
+}
+
+.note .options select {
+    width: 100px;
 }
