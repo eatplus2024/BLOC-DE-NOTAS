@@ -1,24 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SorteoApp</title>
+    <title>Mi Block de Notas</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>SorteoApp</h1>
-    <p>Ingresa al sorteo:</p>
-    <input type="text" id="name" placeholder="Tu nombre">
-    <button onclick="addParticipant()">Participar</button>
-
-    <h2>Participantes</h2>
-    <ul id="participantsList"></ul>
-
-    <h2>Ganador</h2>
-    <div id="digitalBoard">Nadie ha ganado aún</div>
-    <button onclick="pickWinner()">Elegir Ganador</button>
-
+    <div class="container">
+        <h1>Mis Notas</h1>
+        <button id="addNote">Nueva Nota</button>
+        <div id="notes"></div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
