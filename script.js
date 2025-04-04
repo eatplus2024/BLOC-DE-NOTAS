@@ -2,17 +2,23 @@ const addNoteButton = document.getElementById('addNote');
 const notesContainer = document.getElementById('notes');
 const searchNotesInput = document.getElementById('searchNotes');
 const toggleThemeButton = document.getElementById('toggleTheme');
-let isDarkMode = false;
+let isDarkMode = localStorage.getItem('darkMode') === 'true'; // Cargar el estado del tema desde localStorage
 let undoStack = [];
 let redoStack = [];
 
-function createNote(id, title = '', content = '', color = '#fffacd', priority = '', tags = '') {
+// Aplicar el tema al cargar la página
+if (isDarkMode) {
+    document.body.classList.add('dark-mode');
+    toggleThemeButton.textContent = 'Cambiar Color del Tema: Oscuro';
+}
+
+function createNote(id, title = '', content = '', color = '#f0f0f0', priority = '', tags = '') {
     const note = document.createElement('div');
     note.classList.add('note');
     note.style.backgroundColor = color;
     note.innerHTML = `
         <input type="text" value="${title}" placeholder="Título">
-        <textarea placeholder="Escríbe aquí:">${content}</textarea>
+        <textarea placeholder="Escribe aquí:">${content}</textarea>
         <div class="options">
             <button class="color-btn" title="Color">Color</button>
             <select title="Elegir prioridad">
@@ -36,7 +42,11 @@ function createNote(id, title = '', content = '', color = '#fffacd', priority = 
     const deleteButton = note.querySelector('.delete');
 
     titleInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
-    textarea.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    textarea.addEventListener('input', () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+        updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value);
+    });
     colorButton.addEventListener('click', () => {
         const colorInput = document.createElement('input');
         colorInput.type = 'color';
@@ -76,7 +86,7 @@ function addNote() {
         id: Date.now(),
         title: '',
         content: '',
-        color: '#fffacd',
+        color: '#f0f0f0',
         priority: '',
         tags: ''
     };
@@ -120,6 +130,7 @@ toggleThemeButton.addEventListener('click', () => {
     isDarkMode = !isDarkMode;
     document.body.classList.toggle('dark-mode');
     toggleThemeButton.textContent = isDarkMode ? 'Cambiar Color del Tema: Claro' : 'Cambiar Color del Tema: Oscuro';
+    localStorage.setItem('darkMode', isDarkMode); // Guardar el estado del tema en localStorage
 });
 
 addNoteButton.addEventListener('click', addNote);
