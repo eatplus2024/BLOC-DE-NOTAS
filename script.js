@@ -1,13 +1,12 @@
-// Función para crear una nota
-function createNote(id, title = '', content = '', color = '#E7E4E4', priority = '', tags = '', height = '150px') {
+// Código que ya tienes para crear una nota
+function createNote(id, title = '', content = '', color = '#f0f0f0', priority = '', tags = '', height = null) {
     const note = document.createElement('div');
     note.classList.add('note');
     note.style.backgroundColor = color;
-
     note.innerHTML = `
         <div class="note-content">
             <input type="text" value="${title}" placeholder="Título" class="note-title">
-            <textarea placeholder="Escribe aquí:" class="note-textarea" style="height: ${height};">${content}</textarea>
+            <textarea placeholder="Escribe aquí:" class="note-textarea">${content}</textarea>
         </div>
         <div class="options">
             <button class="color-btn" title="Color">Color</button>
@@ -31,6 +30,12 @@ function createNote(id, title = '', content = '', color = '#E7E4E4', priority = 
     const saveButton = note.querySelector('.save');
     const deleteButton = note.querySelector('.delete');
 
+    if (height) {
+        textarea.style.height = height;
+    } else {
+        textarea.style.height = '150px';
+    }
+
     function saveCurrentNote() {
         updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value, textarea.style.height);
     }
@@ -41,26 +46,22 @@ function createNote(id, title = '', content = '', color = '#E7E4E4', priority = 
         textarea.style.height = textarea.scrollHeight + 'px';
         saveCurrentNote();
     });
-
     colorButton.addEventListener('click', () => {
         const colorInput = document.createElement('input');
         colorInput.type = 'color';
         colorInput.value = note.style.backgroundColor;
-        colorInput.addEventListener('input', (event) => {
+        colorInput.addEventListener('change', (event) => {
             note.style.backgroundColor = event.target.value;
             saveCurrentNote();
         });
         colorInput.click();
     });
-
     prioritySelect.addEventListener('change', saveCurrentNote);
     tagsInput.addEventListener('input', saveCurrentNote);
-
     saveButton.addEventListener('click', () => {
         saveCurrentNote();
         note.classList.add('bordered');
     });
-
     deleteButton.addEventListener('click', () => {
         if (confirm('¿Estás seguro de que quieres eliminar esta nota?')) {
             deleteNote(id);
@@ -70,24 +71,86 @@ function createNote(id, title = '', content = '', color = '#E7E4E4', priority = 
     return note;
 }
 
-// Código para cambiar tema claro/oscuro
-const toggleThemeButton = document.getElementById('toggleTheme');
-toggleThemeButton.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    toggleThemeButton.textContent = document.body.classList.contains('dark-mode') 
-        ? 'Cambiar Color del Tema: Oscuro' 
-        : 'Cambiar Color del Tema: Claro';
-});
+// --- NUEVO CÓDIGO que faltaba:
 
-// Código faltante de funciones de ejemplo
-// Estas funciones debes tenerlas ya en tu proyecto
-function updateNote(id, title, content, color, priority, tags, height) {
-    // Aquí deberías actualizar tu nota en el almacenamiento local o como manejes tus datos
+const notesContainer = document.getElementById('notes');
+const addNoteButton = document.getElementById('addNote');
+const searchInput = document.getElementById('searchNotes');
+const toggleThemeButton = document.getElementById('toggleTheme');
+
+// Guardar notas en localStorage
+function saveNotes(notes) {
+    localStorage.setItem('notes', JSON.stringify(notes));
 }
 
-function deleteNote(id) {
-    const note = document.getElementById('notes').querySelector(`[data-id="${id}"]`);
-    if (note) {
-        note.remove();
+// Obtener notas de localStorage
+function loadNotes() {
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    notesContainer.innerHTML = '';
+    notes.forEach(note => {
+        const newNote = createNote(note.id, note.title, note.content, note.color, note.priority, note.tags, note.height);
+        notesContainer.appendChild(newNote);
+    });
+}
+
+// Crear nueva nota
+function addNewNote() {
+    const id = Date.now(); // Un ID único basado en el tiempo
+    const newNoteData = { id, title: '', content: '', color: '#f0f0f0', priority: '', tags: '', height: '150px' };
+    const newNote = createNote(id);
+    notesContainer.appendChild(newNote);
+
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    notes.push(newNoteData);
+    saveNotes(notes);
+}
+
+// Actualizar nota en localStorage
+function updateNote(id, title, content, color, priority, tags, height) {
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    const index = notes.findIndex(note => note.id === id);
+    if (index !== -1) {
+        notes[index] = { id, title, content, color, priority, tags, height };
+        saveNotes(notes);
     }
 }
+
+// Eliminar nota
+function deleteNote(id) {
+    let notes = JSON.parse(localStorage.getItem('notes')) || [];
+    notes = notes.filter(note => note.id !== id);
+    saveNotes(notes);
+    loadNotes();
+}
+
+// Buscar notas
+searchInput.addEventListener('input', () => {
+    const searchTerm = searchInput.value.toLowerCase();
+    const noteElements = notesContainer.querySelectorAll('.note');
+    noteElements.forEach(note => {
+        const title = note.querySelector('.note-title').value.toLowerCase();
+        const content = note.querySelector('.note-textarea').value.toLowerCase();
+        const tags = note.querySelector('input[placeholder^="Etiquetas"]').value.toLowerCase();
+        if (title.includes(searchTerm) || content.includes(searchTerm) || tags.includes(searchTerm)) {
+            note.style.display = 'block';
+        } else {
+            note.style.display = 'none';
+        }
+    });
+});
+
+// Cambiar tema claro/oscuro
+toggleThemeButton.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    if (document.body.classList.contains('dark-mode')) {
+        toggleThemeButton.textContent = 'Cambiar Color del Tema: Oscuro';
+    } else {
+        toggleThemeButton.textContent = 'Cambiar Color del Tema: Claro';
+    }
+});
+
+// Evento para crear una nueva nota
+addNoteButton.addEventListener('click', addNewNote);
+
+// Cargar las notas existentes al abrir la página
+loadNotes();
