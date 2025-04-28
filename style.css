@@ -3,7 +3,7 @@ body {
     margin: 0;
     padding: 20px;
     background-color: #f4f4f4;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s;
 }
 
 body.dark-mode {
@@ -39,7 +39,7 @@ body.dark-mode {
 }
 
 .note {
-    background-color: #E7E4E4;
+    background-color: #E7E4E4; /* Gris pastel predeterminado */
     border-radius: 8px;
     padding: 15px;
     margin-top: 10px;
@@ -61,8 +61,6 @@ body.dark-mode {
     border: 1px solid black;
     resize: vertical;
     padding: 5px;
-    font-family: sans-serif;
-    font-size: 1em;
 }
 
 .note textarea::placeholder {
@@ -73,9 +71,7 @@ body.dark-mode {
     margin-top: 10px;
 }
 
-.note .options button,
-.note .options input[type="color"],
-.note .options select {
+.note .options button, .note .options input[type="color"], .note .options select {
     padding: 5px 10px;
     cursor: pointer;
     margin-right: 5px;
@@ -86,14 +82,13 @@ body.dark-mode {
     color: black;
     padding: 0;
     width: 60px;
-    height: 30px;
 }
 
 .note .options select {
     width: 150px;
 }
 
-.note .options select option:first-child {
+.note .options select option:first-child{
     color: grey;
 }
 
