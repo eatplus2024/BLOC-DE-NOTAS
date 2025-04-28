@@ -1,39 +1,22 @@
-const notesContainer = document.getElementById('notes');
 const addNoteButton = document.getElementById('addNote');
+const notesContainer = document.getElementById('notes');
+const searchNotesInput = document.getElementById('searchNotes');
+const toggleThemeButton = document.getElementById('toggleTheme');
+let isDarkMode = false;
+let undoStack = [];
+let redoStack = [];
 
-// Función para guardar todas las notas en localStorage
-function saveNotes() {
-    const notes = [];
-    const noteElements = document.querySelectorAll('.note');
-    noteElements.forEach(noteEl => {
-        const id = parseInt(noteEl.dataset.id);
-        const title = noteEl.querySelector('.note-title').value;
-        const content = noteEl.querySelector('.note-textarea').value;
-        const color = noteEl.style.backgroundColor;
-        const priority = noteEl.querySelector('select').value;
-        const tags = noteEl.querySelector('input[placeholder*="Etiquetas"]').value;
-        const height = noteEl.querySelector('.note-textarea').style.height;
-        notes.push({ id, title, content, color, priority, tags, height });
-    });
-    localStorage.setItem('notes', JSON.stringify(notes));
-}
-
-// Función para crear una nota
-function createNote(id, title = '', content = '', color = '#f0f0f0', priority = '', tags = '', height = '150px') {
+function createNote(id, title = '', content = '', color = '#fffacd', priority = '', tags = '') {
     const note = document.createElement('div');
     note.classList.add('note');
-    note.dataset.id = id;
     note.style.backgroundColor = color;
-
     note.innerHTML = `
-        <div class="note-content">
-            <input type="text" value="${title}" placeholder="Título" class="note-title">
-            <textarea placeholder="Escribe aquí:" class="note-textarea">${content}</textarea>
-        </div>
+        <input type="text" value="${title}" placeholder="Título">
+        <textarea placeholder="Escríbe aquí:">${content}</textarea>
         <div class="options">
             <button class="color-btn" title="Color">Color</button>
-            <select title="Prioridad">
-                <option value="" ${priority === '' ? 'selected' : ''}>Prioridad</option>
+            <select title="Elegir prioridad">
+                <option value="" disabled selected>Elegir prioridad</option>
                 <option value="alta" ${priority === 'alta' ? 'selected' : ''}>Alta</option>
                 <option value="normal" ${priority === 'normal' ? 'selected' : ''}>Normal</option>
                 <option value="baja" ${priority === 'baja' ? 'selected' : ''}>Baja</option>
@@ -44,64 +27,101 @@ function createNote(id, title = '', content = '', color = '#f0f0f0', priority = 
         </div>
     `;
 
-    const textarea = note.querySelector('.note-textarea');
-    textarea.style.height = height;
+    const titleInput = note.querySelector('input[type="text"]');
+    const textarea = note.querySelector('textarea');
+    const colorButton = note.querySelector('.color-btn');
+    const prioritySelect = note.querySelector('select');
+    const tagsInput = note.querySelector('input[type="text"]:last-of-type');
+    const saveButton = note.querySelector('.save');
+    const deleteButton = note.querySelector('.delete');
 
-    // Eventos
-    note.querySelector('.save').addEventListener('click', saveNotes);
-    note.querySelector('.delete').addEventListener('click', () => {
-        note.remove();
-        saveNotes();
-    });
-    note.querySelector('.color-btn').addEventListener('click', () => {
-        const colorPicker = document.createElement('input');
-        colorPicker.type = 'color';
-        colorPicker.value = rgbToHex(note.style.backgroundColor);
-        colorPicker.style.display = 'none';
-        colorPicker.addEventListener('input', (e) => {
-            note.style.backgroundColor = e.target.value;
-            saveNotes();
+    titleInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    textarea.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    colorButton.addEventListener('click', () => {
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.value = note.style.backgroundColor;
+        colorInput.addEventListener('change', (event) => {
+            note.style.backgroundColor = event.target.value;
+            updateNote(id, titleInput.value, textarea.value, event.target.value, prioritySelect.value, tagsInput.value);
         });
-        document.body.appendChild(colorPicker);
-        colorPicker.click();
-        document.body.removeChild(colorPicker);
+        colorInput.click();
     });
-    textarea.addEventListener('input', () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
+    prioritySelect.addEventListener('change', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    tagsInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    saveButton.addEventListener('click', () => {
+        updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value);
+        note.classList.add('bordered');
+    });
+    deleteButton.addEventListener('click', () => {
+        if (confirm('¿Estás seguro de que quieres eliminar esta nota?')) {
+            deleteNote(id);
+        }
     });
 
     return note;
 }
 
-// Función para convertir color RGB a HEX
-function rgbToHex(rgb) {
-    if (!rgb) return '#f0f0f0';
-    const result = rgb.match(/\d+/g);
-    if (!result) return '#f0f0f0';
-    return "#" + result.map(x => {
-        const hex = parseInt(x).toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-    }).join('');
-}
-
-// Función para cargar notas guardadas
-function loadNotes() {
-    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+function renderNotes(notes = JSON.parse(localStorage.getItem('notes')) || []) {
     notesContainer.innerHTML = '';
-    notes.forEach(({ id, title, content, color, priority, tags, height }) => {
-        const note = createNote(id, title, content, color, priority, tags, height);
-        notesContainer.appendChild(note);
+    notes.forEach(note => {
+        const noteElement = createNote(note.id, note.title, note.content, note.color, note.priority, note.tags);
+        notesContainer.appendChild(noteElement);
     });
 }
 
-// Evento para agregar nueva nota
-addNoteButton.addEventListener('click', () => {
-    const id = Date.now();
-    const note = createNote(id);
-    notesContainer.appendChild(note);
-    saveNotes();
+function addNote() {
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    const newNote = {
+        id: Date.now(),
+        title: '',
+        content: '',
+        color: '#fffacd',
+        priority: '',
+        tags: ''
+    };
+    notes.push(newNote);
+    localStorage.setItem('notes', JSON.stringify(notes));
+    renderNotes();
+}
+
+function updateNote(id, title, content, color, priority, tags) {
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    const note = notes.find(note => note.id === id);
+    if (note) {
+        undoStack.push(JSON.parse(JSON.stringify(note))); // Guardar el estado anterior
+        note.title = title;
+        note.content = content;
+        note.color = color;
+        note.priority = priority;
+        note.tags = tags;
+        localStorage.setItem('notes', JSON.stringify(notes));
+    }
+}
+
+function deleteNote(id) {
+    let notes = JSON.parse(localStorage.getItem('notes')) || [];
+    notes = notes.filter(note => note.id !== id);
+    localStorage.setItem('notes', JSON.stringify(notes));
+    renderNotes();
+}
+
+function searchNotes(searchTerm) {
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+    const filteredNotes = notes.filter(note => {
+        return note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            note.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            note.tags.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+    renderNotes(filteredNotes);
+}
+
+toggleThemeButton.addEventListener('click', () => {
+    isDarkMode = !isDarkMode;
+    document.body.classList.toggle('dark-mode');
+    toggleThemeButton.textContent = isDarkMode ? 'Cambiar Color del Tema: Claro' : 'Cambiar Color del Tema: Oscuro';
 });
 
-// Al iniciar, cargamos las notas
-loadNotes();
+addNoteButton.addEventListener('click', addNote);
+searchNotesInput.addEventListener('input', () => searchNotes(searchNotesInput.value));
+renderNotes();
