@@ -11,14 +11,17 @@ if (isDarkMode) {
     toggleThemeButton.textContent = 'Cambiar Color del Tema: Oscuro';
 }
 
-function createNote(id, title = '', content = '', color = '#f0f0f0', priority = '', tags = '', height = null) {
+function createNote(id, title = '', content = '', color = '#f0f0f0', priority = '', tags = '') {
     const note = document.createElement('div');
     note.classList.add('note');
     note.style.backgroundColor = color;
     note.innerHTML = `
-        <input type="text" value="${title}" placeholder="Título">
-        <textarea placeholder="Escribe aquí:">${content}</textarea>
+        <input type="text" value="${title}" placeholder="Título" style="min-height: 30px;">
+        <textarea placeholder="Escribe aquí:" style="min-height: 60px;">${content}</textarea>
         <div class="options">
+            <button class="pin" title="Fijar">Fijar</button>
+            <button class="move-up" title="Subir">↑</button>
+            <button class="move-down" title="Bajar">↓</button>
             <button class="color-btn" title="Color">Color</button>
             <select title="Elegir prioridad">
                 <option value="" disabled selected>Elegir prioridad</option>
@@ -39,39 +42,39 @@ function createNote(id, title = '', content = '', color = '#f0f0f0', priority = 
     const tagsInput = note.querySelector('input[type="text"]:last-of-type');
     const saveButton = note.querySelector('.save');
     const deleteButton = note.querySelector('.delete');
+    const pinButton = note.querySelector('.pin');
+    const moveUpButton = note.querySelector('.move-up');
+    const moveDownButton = note.querySelector('.move-down');
 
-    // Si hay altura guardada, asignarla
-    if (height) {
-        textarea.style.height = height;
-    } else {
-        // Ajustar altura inicial si no hay altura guardada
-        textarea.style.height = textarea.scrollHeight + 'px';
-    }
-
-    function saveCurrentNote() {
-        updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value, textarea.style.height);
-    }
-
-    titleInput.addEventListener('input', saveCurrentNote);
-    textarea.addEventListener('input', () => {
+    function adjustTextarea() {
         textarea.style.height = 'auto';
         textarea.style.height = textarea.scrollHeight + 'px';
-        saveCurrentNote();
+    }
+
+    titleInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    
+    textarea.addEventListener('input', () => {
+        adjustTextarea();
+        updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value);
     });
+
+    adjustTextarea(); // Ajuste inicial
+
     colorButton.addEventListener('click', () => {
         const colorInput = document.createElement('input');
         colorInput.type = 'color';
         colorInput.value = note.style.backgroundColor;
         colorInput.addEventListener('change', (event) => {
             note.style.backgroundColor = event.target.value;
-            saveCurrentNote();
+            updateNote(id, titleInput.value, textarea.value, event.target.value, prioritySelect.value, tagsInput.value);
         });
         colorInput.click();
     });
-    prioritySelect.addEventListener('change', saveCurrentNote);
-    tagsInput.addEventListener('input', saveCurrentNote);
+
+    prioritySelect.addEventListener('change', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
+    tagsInput.addEventListener('input', () => updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value));
     saveButton.addEventListener('click', () => {
-        saveCurrentNote();
+        updateNote(id, titleInput.value, textarea.value, note.style.backgroundColor, prioritySelect.value, tagsInput.value);
         note.classList.add('bordered');
     });
     deleteButton.addEventListener('click', () => {
@@ -80,68 +83,53 @@ function createNote(id, title = '', content = '', color = '#f0f0f0', priority = 
         }
     });
 
+    // Botón de fijar
+    pinButton.addEventListener('click', () => {
+        notesContainer.prepend(note);
+        saveAllNotes();
+    });
+
+    // Botón de mover hacia arriba
+    moveUpButton.addEventListener('click', () => {
+        const prevNote = note.previousElementSibling;
+        if (prevNote) {
+            notesContainer.insertBefore(note, prevNote);
+            saveAllNotes();
+        }
+    });
+
+    // Botón de mover hacia abajo
+    moveDownButton.addEventListener('click', () => {
+        const nextNote = note.nextElementSibling;
+        if (nextNote) {
+            notesContainer.insertBefore(nextNote, note);
+            saveAllNotes();
+        }
+    });
+
     return note;
-}
-
-function updateNote(id, title, content, color, priority, tags, height) {
-    let notes = JSON.parse(localStorage.getItem('notes')) || [];
-    const index = notes.findIndex(note => note.id === id);
-    if (index !== -1) {
-        notes[index] = { id, title, content, color, priority, tags, height };
-    } else {
-        notes.push({ id, title, content, color, priority, tags, height });
-    }
-    localStorage.setItem('notes', JSON.stringify(notes));
-}
-
-function deleteNote(id) {
-    let notes = JSON.parse(localStorage.getItem('notes')) || [];
-    notes = notes.filter(note => note.id !== id);
-    localStorage.setItem('notes', JSON.stringify(notes));
-    renderNotes();
 }
 
 function renderNotes(notes = JSON.parse(localStorage.getItem('notes')) || []) {
     notesContainer.innerHTML = '';
     notes.forEach(noteData => {
-        const noteElement = createNote(
-            noteData.id, 
-            noteData.title, 
-            noteData.content, 
-            noteData.color, 
-            noteData.priority, 
-            noteData.tags, 
-            noteData.height // le pasamos también la altura
-        );
-        notesContainer.appendChild(noteElement);
+        const note = createNote(noteData.id, noteData.title, noteData.content, noteData.color, noteData.priority, noteData.tags);
+        notesContainer.prepend(note); // Ahora se agregan del más reciente al más viejo
     });
 }
 
-// Crear nueva nota
-addNoteButton.addEventListener('click', () => {
-    const id = Date.now();
-    const newNote = createNote(id);
-    notesContainer.appendChild(newNote);
-    updateNote(id, '', '', '#f0f0f0', '', '', 'auto');
-});
-
-// Buscar notas
-searchNotesInput.addEventListener('input', (e) => {
-    const searchText = e.target.value.toLowerCase();
-    document.querySelectorAll('.note').forEach(note => {
-        const title = note.querySelector('input[type="text"]').value.toLowerCase();
-        const content = note.querySelector('textarea').value.toLowerCase();
-        note.style.display = title.includes(searchText) || content.includes(searchText) ? 'block' : 'none';
+// Guardar todas las notas
+function saveAllNotes() {
+    const allNotes = [...notesContainer.children].map(note => {
+        const title = note.querySelector('input[type="text"]').value;
+        const content = note.querySelector('textarea').value;
+        const color = note.style.backgroundColor;
+        const priority = note.querySelector('select').value;
+        const tags = note.querySelector('input[type="text"]:last-of-type').value;
+        return { id: generateId(), title, content, color, priority, tags };
     });
-});
+    localStorage.setItem('notes', JSON.stringify(allNotes));
+}
 
-// Cambiar tema
-toggleThemeButton.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    isDarkMode = !isDarkMode;
-    localStorage.setItem('darkMode', isDarkMode);
-    toggleThemeButton.textContent = isDarkMode ? 'Cambiar Color del Tema: Oscuro' : 'Cambiar Color del Tema: Claro';
-});
+// (Aquí seguiría tu código de `updateNote`, `deleteNote`, etc.)
 
-// Cargar notas al iniciar
-renderNotes();
