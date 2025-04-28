@@ -47,14 +47,6 @@ body.dark-mode {
     transition: background-color 0.3s, border 0.3s;
 }
 
-/* NUEVA parte para estructurar el contenido de las notas */
-.note-content {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-/* Ajuste específico para input de título */
 .note input[type="text"] {
     width: 100%;
     border: 1px solid black;
@@ -62,18 +54,17 @@ body.dark-mode {
     font-weight: bold;
     margin-bottom: 5px;
     padding: 5px;
-    box-sizing: border-box; /* Muy importante para que no se desborde */
+    box-sizing: border-box;
 }
 
-/* Mejora el área del contenido */
 .note textarea {
     width: 100%;
     border: 1px solid black;
     resize: vertical;
-    padding: 10px; /* Un poco más de espacio interno */
-    min-height: 150px; /* Amplía el espacio predeterminado */
+    padding: 10px; /* Más cómodo */
+    min-height: 120px; /* AHORA más grande sin alterar el funcionamiento */
     font-size: 1em;
-    box-sizing: border-box; /* Para que ajuste dentro del contenedor */
+    box-sizing: border-box;
 }
 
 .note textarea::placeholder {
@@ -84,7 +75,9 @@ body.dark-mode {
     margin-top: 10px;
 }
 
-.note .options button, .note .options input[type="color"], .note .options select {
+.note .options button,
+.note .options input[type="color"],
+.note .options select {
     padding: 5px 10px;
     cursor: pointer;
     margin-right: 5px;
